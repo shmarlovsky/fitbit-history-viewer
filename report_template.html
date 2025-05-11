@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fitbit history</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+
+    .info-container,
+    .chart-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      padding: 20px;
+    }
+
+    .chart {
+      height: 400px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .spoiler {
+      width: 100%;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+      margin-top: 20px;
+    }
+
+    .spoiler-content {
+      padding: 20px;
+      display: none;
+    }
+
+    .spoiler-toggle {
+      padding: 10px;
+      background-color: white;
+      cursor: pointer;
+      user-select: none;
+      font-weight: bold;
+    }
+
+    .spoiler-toggle::after {
+      content: '▼';
+      float: right;
+    }
+
+    .spoiler.open .spoiler-toggle::after {
+      content: '▲';
+    }
+
+    .spoiler.open .spoiler-content {
+      display: block;
+    }
+
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    li {
+      margin-bottom: 10px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    li::before {
+      content: '•';
+      /* color: #007bff; */
+      font-size: 1.5em;
+      position: absolute;
+      left: 0;
+      top: -5px;
+    }
+
+    .chart-note {
+      background-color: #eee;
+      border-left: 4px solid #aeaeae;
+      padding: 15px;
+      margin-top: 20px;
+    }
+
+    .chart-note h3 {
+      margin-top: 0;
+      /* color: #28a745; */
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="chart-container">
+    <h2>Daily readiness score</h2>
+    <div id="readinessScore" class="chart"></div>
+  </div>
+
+  <script>
+
+    // details spoilter collapse and expand
+    document.querySelectorAll('.spoiler-toggle').forEach(function (element) {
+      element.addEventListener('click', function () {
+        this.parentElement.classList.toggle('open');
+      });
+    });
+
+    // Chart data
+    const dailyReadinessData = {{context.dailyReadinessData}};
+
+    // Create charts
+    const dailyReadinessChart = echarts.init(document.getElementById('readinessScore'));
+
+    // Common options
+    const commonOptions = {
+      animation: false,
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'cross',
+          animation: false,
+          label: {
+            backgroundColor: '#ccc',
+            borderColor: '#aaa',
+            borderWidth: 1,
+            shadowBlur: 0,
+            shadowOffsetX: 0,
+            shadowOffsetY: 0,
+            color: '#222'
+          }
+        }
+      },
+      dataZoom: [
+        {
+          show: true,
+          realtime: true,
+          start: 0,
+          end: 100
+        },
+        {
+          type: 'inside',
+          realtime: true,
+          start: 0,
+          end: 100
+        }
+      ],
+      axisPointer: {
+        link: {xAxisIndex: 'all'}
+      },
+
+    };
+
+    dailyReadinessChart.setOption({
+      ...commonOptions,
+      title: {text: 'Daily readiness score'},
+      xAxis: {type: 'category', data: dailyReadinessData.map(d => new Date(d.timestamp * 1000).toUTCString())},
+      yAxis: {type: 'value', name: 'Score value', min: 0, max: 100},
+      series: [{
+        name: 'Daily Readiness Score',
+        type: 'line',
+        data: dailyReadinessData.map(d => d.value),
+        smooth: true,
+      }]
+    });
+
+    // Connect charts for synchronized interactions
+    echarts.connect([dailyReadinessChart]);
+
+    // Resize charts when window size changes
+    window.addEventListener('resize', function () {
+      dailyReadinessChart.resize();
+    });
+  </script>
+</body>
+
+</html>
